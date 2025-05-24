@@ -27,11 +27,19 @@ interface NodeDesignerProps {
 }
 
 // Custom Node Types
-const DialogueNode = ({ data }: { data: any }) => {
+const DialogueNode = ({ data, onDelete }: { data: any, onDelete: (nodeId: string) => void }) => {
     const [showDetails, setShowDetails] = useState(false);
 
+    const handleRightClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (confirm(`Remove "${data.dialogue_text?.slice(0, 50) || 'dialogue'}" from view?`)) {
+            onDelete(`dialogue-${data.id}`);
+        }
+    };
+
     return (
-        <div className="dialogue-node">
+        <div className="dialogue-node" onContextMenu={handleRightClick}>
             <Handle
                 type="target"
                 position={Position.Left}
@@ -45,12 +53,24 @@ const DialogueNode = ({ data }: { data: any }) => {
 
             <div className="node-header">
                 <span className="speaker">🎭 {data.speaker || 'Unknown'}</span>
-                <button
-                    className="details-btn"
-                    onClick={() => setShowDetails(!showDetails)}
-                >
-                    📋
-                </button>
+                <div className="node-controls">
+                    <button
+                        className="details-btn"
+                        onClick={() => setShowDetails(!showDetails)}
+                    >
+                        📋
+                    </button>
+                    <button
+                        className="delete-btn"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleRightClick(e);
+                        }}
+                        title="Remove from view"
+                    >
+                        ✕
+                    </button>
+                </div>
             </div>
             <div className="dialogue-text">
                 {data.dialogue_text || 'No dialogue'}
@@ -141,6 +161,30 @@ const HelperNode = ({ data }: { data: any }) => {
 
     return (
         <div className="helper-node">
+            {/* INPUT HANDLE - Left side for incoming connections */}
+            <Handle
+                type="target"
+                position={Position.Left}
+                style={{
+                    background: '#f59e0b',
+                    width: '10px',
+                    height: '10px',
+                    border: '2px solid white'
+                }}
+            />
+
+            {/* OUTPUT HANDLE - Right side for outgoing connections */}
+            <Handle
+                type="source"
+                position={Position.Right}
+                style={{
+                    background: '#f59e0b',
+                    width: '10px',
+                    height: '10px',
+                    border: '2px solid white'
+                }}
+            />
+
             <div className="helper-header">
                 <span className="helper-icon">📝</span>
                 <button
@@ -173,12 +217,34 @@ const HelperNode = ({ data }: { data: any }) => {
     );
 };
 
-const nodeTypes: NodeTypes = {
-    dialogue: DialogueNode,
+// Delete node handler
+const handleDeleteNode = useCallback((nodeId: string) => {
+    // Remove the node from view
+    setNodes(prev => prev.filter(node => node.id !== nodeId));
+    // Also remove any connected edges
+    setEdges(prev => prev.filter(edge =>
+        edge.source !== nodeId && edge.target !== nodeId
+    ));
+    // Clean up edge labels for deleted connections
+    setEdgeLabels(prev => {
+        const newLabels = { ...prev };
+        Object.keys(newLabels).forEach(edgeId => {
+            const edge = edges.find(e => e.id === edgeId);
+            if (!edge || edge.source === nodeId || edge.target === nodeId) {
+                delete newLabels[edgeId];
+            }
+        });
+        return newLabels;
+    });
+}, [setNodes, setEdges, edges]);
+
+// Update nodeTypes to include delete handler
+const nodeTypesWithHandlers = useMemo(() => ({
+    dialogue: (props: any) => <DialogueNode {...props} onDelete={handleDeleteNode} />,
     zone: ZoneNode,
     mission: MissionNode,
-    helper: HelperNode,
-};
+    helper: (props: any) => <HelperNode {...props} onDelete={handleDeleteNode} />,
+}), [handleDeleteNode]);
 
 type ZoomLevel = 'mission' | 'zone' | 'dialogue';
 
@@ -236,50 +302,93 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
         const [isEditingLabel, setIsEditingLabel] = useState(false);
         const [labelText, setLabelText] = useState(edgeLabels[id] || '');
 
-        const midX = (sourceX + targetX) / 2;
-        const midY = (sourceY + targetY) / 2;
+        // Create orthogonal (right-angle) path
+        const midX = sourceX + (targetX - sourceX) * 0.7; // 70% of the way horizontally
+        const pathData = `M ${sourceX} ${sourceY} L ${midX} ${sourceY} L ${midX} ${targetY} L ${targetX} ${targetY}`;
+
+        // Label position at the corner
+        const labelX = midX;
+        const labelY = (sourceY + targetY) / 2;
 
         const handleLabelSave = () => {
             setEdgeLabels(prev => ({ ...prev, [id]: labelText }));
             setIsEditingLabel(false);
         };
 
+        const handleDoubleClick = (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsEditingLabel(true);
+        };
+
+        const handleRightClick = (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (confirm(`Delete connection "${edgeLabels[id] || 'Untitled'}"?`)) {
+                setEdges(prev => prev.filter(edge => edge.id !== id));
+                setEdgeLabels(prev => {
+                    const newLabels = { ...prev };
+                    delete newLabels[id];
+                    return newLabels;
+                });
+            }
+        };
+
+        const hasLabel = edgeLabels[id] && edgeLabels[id].trim().length > 0;
+
         return (
             <>
                 <path
-                    d={`M ${sourceX} ${sourceY} Q ${midX} ${midY - 50} ${targetX} ${targetY}`}
-                    style={style}
+                    d={pathData}
+                    style={{...style, strokeWidth: 3, cursor: 'pointer'}}
                     fill="none"
                     markerEnd={markerEnd}
+                    onDoubleClick={handleDoubleClick}
+                    onContextMenu={handleRightClick}
                 />
-                <foreignObject
-                    x={midX - 50}
-                    y={midY - 10}
-                    width={100}
-                    height={20}
-                    className="edge-label-container"
+                {/* Invisible wider path for easier clicking */}
+                <path
+                    d={pathData}
+                    style={{stroke: 'transparent', strokeWidth: 10, cursor: 'pointer'}}
+                    fill="none"
+                    onDoubleClick={handleDoubleClick}
+                    onContextMenu={handleRightClick}
                 >
-                    {isEditingLabel ? (
-                        <div className="edge-label-editor">
-                            <input
-                                type="text"
-                                value={labelText}
-                                onChange={(e) => setLabelText(e.target.value)}
-                                onBlur={handleLabelSave}
-                                onKeyDown={(e) => e.key === 'Enter' && handleLabelSave()}
-                                autoFocus
-                                placeholder="Choice text..."
-                            />
-                        </div>
-                    ) : (
-                        <div
-                            className="edge-label"
-                            onClick={() => setIsEditingLabel(true)}
-                        >
-                            {edgeLabels[id] || '+'}
-                        </div>
-                    )}
-                </foreignObject>
+                    <title>Double-click to add text, right-click to delete</title>
+                </path>
+                {(hasLabel || isEditingLabel) && (
+                    <foreignObject
+                        x={labelX - 60}
+                        y={labelY - 12}
+                        width={120}
+                        height={24}
+                        className="edge-label-container"
+                        onDoubleClick={handleDoubleClick}
+                        onContextMenu={handleRightClick}
+                    >
+                        {isEditingLabel ? (
+                            <div className="edge-label-editor">
+                                <input
+                                    type="text"
+                                    value={labelText}
+                                    onChange={(e) => setLabelText(e.target.value)}
+                                    onBlur={handleLabelSave}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleLabelSave()}
+                                    autoFocus
+                                    placeholder="Choice text..."
+                                />
+                            </div>
+                        ) : (
+                            <div
+                                className="edge-label edge-label-visible"
+                                onClick={() => setIsEditingLabel(true)}
+                                title="Click to edit, right-click to delete connection"
+                            >
+                                {edgeLabels[id]}
+                            </div>
+                        )}
+                    </foreignObject>
+                )}
             </>
         );
     };
@@ -467,14 +576,15 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
     }, [filteredData, onAddRow]);
 
     const handleAddHelperNode = useCallback(() => {
+        const nodeId = `helper-${Date.now()}`;
         const newHelper = {
-            id: `helper-${Date.now()}`,
+            id: nodeId,
             type: 'helper',
             position: {
                 x: Math.random() * 300 + 100,
                 y: Math.random() * 200 + 100
             },
-            data: { text: 'Scene description...' },
+            data: { text: 'Scene description...', nodeId },
         };
 
         setNodes(prev => [...prev, newHelper]);

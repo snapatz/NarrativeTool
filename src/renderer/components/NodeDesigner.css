@@ -1,0 +1,710 @@
+﻿/* Helper Node Styles */
+.helper-node {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1f2937;
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 200px;
+    max-width: 280px;
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.3);
+    border: 2px solid #fcd34d;
+}
+
+.helper-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.helper-icon {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.edit-helper-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.edit-helper-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.helper-text {
+    font-size: 13px;
+    line-height: 1.4;
+    cursor: pointer;
+    min-height: 40px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.helper-text:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.helper-editor textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 60px;
+    color: #1f2937;
+}
+
+.helper-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.save-btn, .cancel-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-btn {
+    background: #10b981;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #059669;
+}
+
+.cancel-btn {
+    background: rgba(255, 255, 255, 0.3);
+    color: #1f2937;
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Edge Label Styles */
+.edge-label-container {
+    pointer-events: all;
+}
+
+.edge-label {
+    background: rgba(96, 165, 250, 0.9);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #3b82f6;
+    transition: all 0.2s ease;
+    min-width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edge-label:hover {
+    background: #3b82f6;
+    transform: scale(1.1);
+}
+
+.edge-label-editor input {
+    width: 80px;
+    padding: 2px 6px;
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    font-size: 10px;
+    text-align: center;
+    background: white;
+    color: #1f2937;
+}
+
+.edge-label-editor input:focus {
+    outline: none;
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Enhanced Toolbar Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* React Flow Overrides */
+.react-flow__controls {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+
+.react-flow__controls-button {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.react-flow__controls-button:hover {
+    background: var(--color-hover);
+}
+
+.react-flow__background {
+    background-color: var(--color-background);
+}
+
+/* Node Selection Styles */
+.react-flow__node.selected {
+    box-shadow: 0 0 0 3px #60a5fa !important;
+}
+
+.react-flow__edge.selected {
+    stroke: #fbbf24 !important;
+    stroke-width: 3px !important;
+}
+
+.react-flow__edge:hover {
+    stroke: #60a5fa !important;
+    stroke-width: 3px !important;
+    cursor: pointer;
+}/* Complete NodeDesigner.css with all advanced features */
+
+/* Node Designer Main Container */
+.node-designer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--color-background);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Toolbar */
+.node-toolbar {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    color: var(--color-text-primary);
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.zoom-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-primary);
+}
+
+.zoom-btn.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.filter-controls select {
+    background: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.node-count {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Flow Container */
+.flow-container {
+    flex: 1;
+    background: var(--color-background);
+}
+
+/* Custom Node Styles */
+.dialogue-node {
+    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-elevated) 100%);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 250px;
+    max-width: 280px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.speaker {
+    font-size: 12px;
+    font-weight: 600;
+    color: #60a5fa;
+}
+
+.details-btn {
+    background: rgba(96, 165, 250, 0.2);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    color: #60a5fa;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+    transition: all 0.2s ease;
+}
+
+.details-btn:hover {
+    background: rgba(96, 165, 250, 0.3);
+}
+
+.dialogue-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.trigger {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+/* Details Popup */
+.details-popup {
+    position: absolute;
+    top: -10px;
+    left: 100%;
+    margin-left: 10px;
+    z-index: 1001;
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.popup-content {
+    padding: 16px;
+    position: relative;
+}
+
+.close-popup {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.close-popup:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-primary);
+}
+
+.popup-content h4 {
+    margin: 0 0 12px 0;
+    color: var(--color-text-primary);
+    font-size: 14px;
+}
+
+.detail-row {
+    margin-bottom: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.detail-row strong {
+    color: var(--color-text-secondary);
+    margin-right: 8px;
+    min-width: 80px;
+    display: inline-block;
+}
+
+/* Zone Node */
+.zone-node {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 16px;
+    min-width: 200px;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.zone-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.zone-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.dialogue-count {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+/* Mission Node */
+.mission-node {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 250px;
+    box-shadow: 0 6px 24px rgba(16, 185, 129, 0.3);
+}
+
+.mission-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.mission-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.mission-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+.mission-stats span {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Helper Node Styles */
+.helper-node {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1f2937;
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 200px;
+    max-width: 280px;
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.3);
+    border: 2px solid #fcd34d;
+}
+
+.helper-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.helper-icon {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.edit-helper-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.edit-helper-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.helper-text {
+    font-size: 13px;
+    line-height: 1.4;
+    cursor: pointer;
+    min-height: 40px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.helper-text:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.helper-editor textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 60px;
+    color: #1f2937;
+}
+
+.helper-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.save-btn, .cancel-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-btn {
+    background: #10b981;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #059669;
+}
+
+.cancel-btn {
+    background: rgba(255, 255, 255, 0.3);
+    color: #1f2937;
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Edge Label Styles */
+.edge-label-container {
+    pointer-events: all;
+}
+
+.edge-label {
+    background: rgba(96, 165, 250, 0.9);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #3b82f6;
+    transition: all 0.2s ease;
+    min-width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edge-label:hover {
+    background: #3b82f6;
+    transform: scale(1.1);
+}
+
+.edge-label-editor input {
+    width: 80px;
+    padding: 2px 6px;
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    font-size: 10px;
+    text-align: center;
+    background: white;
+    color: #1f2937;
+}
+
+.edge-label-editor input:focus {
+    outline: none;
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Enhanced Toolbar Buttons */
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* Node Selection Styles */
+.react-flow__node.selected {
+    box-shadow: 0 0 0 3px #60a5fa !important;
+}
+
+.react-flow__edge.selected {
+    stroke: #fbbf24 !important;
+    stroke-width: 3px !important;
+}
+
+.react-flow__edge:hover {
+    stroke: #60a5fa !important;
+    stroke-width: 3px !important;
+    cursor: pointer;
+}
+
+/* Status Indicators */
+.node-status-indicator {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.status-connected {
+    background: #10b981;
+}
+
+.status-modified {
+    background: #f59e0b;
+}
+
+.status-new {
+    background: #3b82f6;
+}
+
+/* Helper for drag and drop */
+.drop-zone {
+    border: 2px dashed #60a5fa;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: #9ca3af;
+    transition: all 0.2s ease;
+}
+
+.drop-zone.active {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}

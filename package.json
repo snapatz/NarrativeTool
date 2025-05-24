@@ -1,0 +1,51 @@
+{
+  "name": "narrative-db-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/main/main.js",
+  "build": {
+    "appId": "com.yourname.narrative-db-tool",
+    "productName": "Narrative Database Tool",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*"
+    ]
+  },
+  "scripts": {
+    "electron": "electron .",
+    "electron-dev": "cross-env NODE_ENV=development electron .",
+    "react-dev": "webpack serve --mode development",
+    "build": "webpack --mode production",
+    "dev": "concurrently \"npm run react-dev\" \"wait-on http://localhost:3000 && npm run electron-dev\"",
+    "dist": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "electron": "^36.3.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-window": "^1.8.11",
+    "react-window-infinite-loader": "^1.0.10",
+    "reactflow": "^11.11.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "@types/react-window": "^1.8.8",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "css-loader": "^7.1.2",
+    "electron-builder": "^26.0.12",
+    "html-webpack-plugin": "^5.6.3",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "wait-on": "^8.0.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.1"
+  },
+  "private": true
+}

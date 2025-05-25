@@ -11,7 +11,10 @@ import ReactFlow, {
     ConnectionMode,
     MarkerType,
     Position,
-    Handle
+    Handle,
+    useReactFlow,
+    SelectionMode,
+    OnSelectionChangeFunc
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { DialogueEvent } from '../types';
@@ -23,12 +26,30 @@ interface NodeDesignerProps {
     onClose: () => void;
     onUpdateData: (data: DialogueEvent[]) => void;
     onAddRow: (rows: Partial<DialogueEvent>[]) => void;
+    onUpdateRow: (id: number, field: string, value: string) => void;
+    dropdownOptions: any;
+    isBlankSlateMode: boolean;
 }
 
 // Custom Node Types - Kept outside as they don't need component state directly,
 // but onDelete will be passed down.
-const DialogueNode = ({ data, onDelete }: { data: any, onDelete: (nodeId: string) => void }) => {
+const DialogueNode = ({ data, onDelete, onUpdate, dropdownOptions }: { 
+    data: any, 
+    onDelete: (nodeId: string) => void,
+    onUpdate: (id: number, updates: Partial<any>) => void,
+    dropdownOptions: any
+}) => {
     const [showDetails, setShowDetails] = useState(false);
+    const [isEditing, setIsEditing] = useState({
+        speaker: false,
+        dialogue_text: false,
+        trigger: false
+    });
+    const [editValues, setEditValues] = useState({
+        speaker: data.speaker || '',
+        dialogue_text: data.dialogue_text || '',
+        trigger: data.trigger || ''
+    });
 
     const handleRightClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -38,18 +59,102 @@ const DialogueNode = ({ data, onDelete }: { data: any, onDelete: (nodeId: string
         }
     };
 
+    const handleEdit = (field: keyof typeof isEditing) => {
+        setIsEditing(prev => ({ ...prev, [field]: true }));
+        setEditValues(prev => ({ ...prev, [field]: data[field] || '' }));
+    };
+
+    const handleSave = (field: keyof typeof isEditing) => {
+        if (editValues[field] !== data[field]) {
+            onUpdate(data.id, { [field]: editValues[field] });
+        }
+        setIsEditing(prev => ({ ...prev, [field]: false }));
+    };
+
+    const handleCancel = (field: keyof typeof isEditing) => {
+        setEditValues(prev => ({ ...prev, [field]: data[field] || '' }));
+        setIsEditing(prev => ({ ...prev, [field]: false }));
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent, field: keyof typeof isEditing) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSave(field);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleCancel(field);
+        }
+    };
+
     return (
         <div className="dialogue-node" onContextMenu={handleRightClick}>
             <Handle type="target" position={Position.Left} style={{ background: '#60a5fa', width: '12px', height: '12px', border: '2px solid white' }} />
             <div className="node-header">
-                <span className="speaker">🎭 {data.speaker || 'Unknown'}</span>
+                {isEditing.speaker ? (
+                    <div className="edit-field">
+                        <select
+                            value={editValues.speaker}
+                            onChange={(e) => {
+                                setEditValues(prev => ({ ...prev, speaker: e.target.value }));
+                                handleSave('speaker');
+                            }}
+                            onBlur={() => handleSave('speaker')}
+                            onKeyDown={(e) => handleKeyDown(e, 'speaker')}
+                            className="speaker-select"
+                            autoFocus
+                        >
+                            <option value="">Select speaker...</option>
+                            {dropdownOptions.speakers.map((speaker: string) => (
+                                <option key={speaker} value={speaker}>{speaker}</option>
+                            ))}
+                        </select>
+                    </div>
+                ) : (
+                    <span className="speaker" onClick={() => handleEdit('speaker')} title="Click to edit">
+                        🎭 {data.speaker || 'Unknown'}
+                    </span>
+                )}
                 <div className="node-controls">
                     <button className="details-btn" onClick={() => setShowDetails(!showDetails)}>📋</button>
                     <button className="delete-btn" onClick={(e) => { e.stopPropagation(); handleRightClick(e); }} title="Remove from view">✕</button>
                 </div>
             </div>
-            <div className="dialogue-text">{data.dialogue_text || 'No dialogue'}</div>
-            <div className="trigger">⚡ {data.trigger || 'No trigger'}</div>
+            {isEditing.dialogue_text ? (
+                <div className="edit-field">
+                    <textarea
+                        value={editValues.dialogue_text}
+                        onChange={(e) => setEditValues(prev => ({ ...prev, dialogue_text: e.target.value }))}
+                        onBlur={() => handleSave('dialogue_text')}
+                        onKeyDown={(e) => handleKeyDown(e, 'dialogue_text')}
+                        className="dialogue-input"
+                        placeholder="Dialogue text"
+                        rows={3}
+                        autoFocus
+                    />
+                </div>
+            ) : (
+                <div className="dialogue-text" onClick={() => handleEdit('dialogue_text')} title="Click to edit">
+                    {data.dialogue_text || 'No dialogue'}
+                </div>
+            )}
+            {isEditing.trigger ? (
+                <div className="edit-field">
+                    <input
+                        type="text"
+                        value={editValues.trigger}
+                        onChange={(e) => setEditValues(prev => ({ ...prev, trigger: e.target.value }))}
+                        onBlur={() => handleSave('trigger')}
+                        onKeyDown={(e) => handleKeyDown(e, 'trigger')}
+                        className="trigger-input"
+                        placeholder="Trigger condition"
+                        autoFocus
+                    />
+                </div>
+            ) : (
+                <div className="trigger" onClick={() => handleEdit('trigger')} title="Click to edit">
+                    ⚡ {data.trigger || 'No trigger'}
+                </div>
+            )}
             <Handle type="source" position={Position.Right} style={{ background: '#60a5fa', width: '12px', height: '12px', border: '2px solid white' }} />
             {showDetails && (
                 <div className="details-popup">
@@ -140,7 +245,10 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
                                                        selectedRows,
                                                        onClose,
                                                        onUpdateData,
-                                                       onAddRow
+                                                       onAddRow,
+                                                       onUpdateRow,
+                                                       dropdownOptions,
+                                                       isBlankSlateMode
                                                    }) => {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -157,6 +265,8 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
         edges: Edge[];
         edgeLabels: { [key: string]: string };
     } | null>(null);
+    const [blankSlateNodeIds, setBlankSlateNodeIds] = useState<Set<number>>(new Set());
+    const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
 
     const prevZoomLevel = useRef(zoomLevel);
 
@@ -181,17 +291,32 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
         });
     }, [setNodes, setEdges, setEdgeLabels, edges]); // Added `edges` dependency
 
+    // Handle node updates
+    const handleUpdateNode = useCallback((id: number, updates: Partial<DialogueEvent>) => {
+        Object.entries(updates).forEach(([field, value]) => {
+            onUpdateRow(id, field, value as string);
+        });
+    }, [onUpdateRow]);
+
     // *** MOVED INSIDE THE COMPONENT ***
     const nodeTypes = useMemo(() => ({ // Renamed to `nodeTypes`
-        dialogue: (props: any) => <DialogueNode {...props} onDelete={handleDeleteNode} />,
+        dialogue: (props: any) => <DialogueNode {...props} onDelete={handleDeleteNode} onUpdate={handleUpdateNode} dropdownOptions={dropdownOptions} />,
         zone: ZoneNode,
         mission: MissionNode,
         helper: (props: any) => <HelperNode {...props} onDelete={handleDeleteNode} />,
-    }), [handleDeleteNode]); // Depends on `handleDeleteNode` which is now stable
+    }), [handleDeleteNode, handleUpdateNode, dropdownOptions]); // Depends on `handleDeleteNode` which is now stable
 
 
     const filteredData = useMemo(() => {
         if (currentFilter.type === 'selection') {
+            // In blank slate mode, show only newly created dialogues
+            if (isBlankSlateMode) {
+                return data.filter(row => blankSlateNodeIds.has(row.id));
+            }
+            // If no rows are selected but not in blank slate mode, show all data
+            if (selectedRows.length === 0) {
+                return data;
+            }
             return data.filter(row => selectedRows.includes(row.id));
         } else if (currentFilter.type === 'mission') {
             return data.filter(row => row.mission === currentFilter.value);
@@ -199,7 +324,7 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
             return data.filter(row => row.zone === currentFilter.value);
         }
         return data;
-    }, [data, selectedRows, currentFilter]);
+    }, [data, selectedRows, currentFilter, isBlankSlateMode, blankSlateNodeIds]);
 
     const missions = useMemo(() => Array.from(new Set(data.map(row => row.mission).filter(Boolean))), [data]);
     const zones = useMemo(() => Array.from(new Set(data.map(row => row.zone).filter(Boolean))), [data]);
@@ -246,7 +371,7 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
         );
     };
 
-    const generateLayout = useCallback((dialogues: DialogueEvent[], level: ZoomLevel) => {
+    const generateLayout = useCallback((dialogues: DialogueEvent[], level: ZoomLevel, viewportCenter?: { x: number, y: number }) => {
         const newNodes: Node[] = [];
         const newEdges: Edge[] = [];
 
@@ -273,9 +398,24 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
                 newNodes.push({ id: `zone-${zone}`, type: 'zone', position: { x: col * 250, y: row * 150 }, data: { zone, dialogueCount: dialogues.length } });
             });
         } else {
+            const baseX = viewportCenter?.x || 0;
+            const baseY = viewportCenter?.y || 0;
+            
             dialogues.forEach((dialogue, index) => {
-                const row = Math.floor(index / 4); const col = index % 4;
-                newNodes.push({ id: `dialogue-${dialogue.id}`, type: 'dialogue', position: { x: col * 300, y: row * 200 }, data: dialogue });
+                const row = Math.floor(index / 4); 
+                const col = index % 4;
+                // Center the grid around viewport center
+                const offsetX = (col - 1.5) * 300; // Center 4 columns
+                const offsetY = (row - Math.floor(dialogues.length / 8)) * 200; // Center vertically
+                newNodes.push({ 
+                    id: `dialogue-${dialogue.id}`, 
+                    type: 'dialogue', 
+                    position: { 
+                        x: baseX + offsetX, 
+                        y: baseY + offsetY 
+                    }, 
+                    data: dialogue 
+                });
             });
         }
         return { nodes: newNodes, edges: newEdges };
@@ -300,6 +440,21 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
         }
     }, [filteredData, zoomLevel, generateLayout, savedNodeState, restoreState, nodes.length]);
 
+    // Track new dialogues added in blank slate mode
+    useEffect(() => {
+        if (isBlankSlateMode) {
+            const existingIds = new Set(Array.from(blankSlateNodeIds));
+            const newDialogues = data.filter(d => !existingIds.has(d.id) && d.id >= Math.max(...data.map(x => x.id)) - 10); // Recently added
+            if (newDialogues.length > 0) {
+                setBlankSlateNodeIds(prev => {
+                    const newSet = new Set(prev);
+                    newDialogues.forEach(d => newSet.add(d.id));
+                    return newSet;
+                });
+            }
+        }
+    }, [data, isBlankSlateMode, blankSlateNodeIds]);
+
     useEffect(() => {
         if (zoomLevel === 'dialogue' && nodes.length > 0) {
             const currentIds = new Set(nodes.filter(n => n.type === 'dialogue').map(n => n.id));
@@ -307,28 +462,165 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
             if (missingDialogues.length > 0) {
                 const newNodesToAdd = missingDialogues.map((dialogue, index) => {
                     const existingCount = nodes.filter(n => n.type === 'dialogue').length;
-                    const row = Math.floor((existingCount + index) / 4); const col = (existingCount + index) % 4;
-                    return { id: `dialogue-${dialogue.id}`, type: 'dialogue', position: { x: col * 300, y: row * 200 }, data: dialogue };
+                    
+                    // Use stored position for the newest dialogue, or calculate position
+                    let position;
+                    if (index === 0 && (window as any).__nextNodePosition) {
+                        position = (window as any).__nextNodePosition;
+                        delete (window as any).__nextNodePosition;
+                    } else {
+                        // Position new nodes near viewport center if possible
+                        const gridSize = 50;
+                        const baseX = 0; // Default fallback
+                        const baseY = 0;
+                        const row = Math.floor((existingCount + index) / 4); 
+                        const col = (existingCount + index) % 4;
+                        const snappedX = Math.round((baseX + col * 300) / gridSize) * gridSize;
+                        const snappedY = Math.round((baseY + row * 200) / gridSize) * gridSize;
+                        position = { x: snappedX, y: snappedY };
+                    }
+                    
+                    return { 
+                        id: `dialogue-${dialogue.id}`, 
+                        type: 'dialogue', 
+                        position: position, 
+                        data: dialogue 
+                    };
                 });
                 setNodes(prev => [...prev, ...newNodesToAdd]);
             }
         }
-    }, [filteredData.length, zoomLevel, nodes, setNodes, filteredData]); // Added setNodes and filteredData
+    }, [filteredData.length, zoomLevel, nodes, setNodes, filteredData]);
 
     const onConnect = useCallback((params: Connection) => {
         const newEdge = { ...params, id: `edge-${Date.now()}`, type: 'custom', markerEnd: { type: MarkerType.ArrowClosed, color: '#60a5fa' }, style: { stroke: '#60a5fa', strokeWidth: 2 } };
         setEdges((eds) => addEdge(newEdge, eds));
     }, [setEdges]);
 
+    // New component to access ReactFlow instance
+    // Add keyboard shortcuts and selection handling
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Ctrl+A - Select all visible nodes
+            if (event.ctrlKey && event.key === 'a') {
+                event.preventDefault();
+                const visibleNodeIds = nodes.map(node => node.id);
+                setSelectedNodes(visibleNodeIds);
+                // Update ReactFlow selection
+                setNodes(prev => prev.map(node => ({ ...node, selected: true })));
+            }
+            
+            // Delete key - Delete selected nodes
+            if (event.key === 'Delete' && selectedNodes.length > 0) {
+                event.preventDefault();
+                // Remove selected dialogue nodes from data
+                const dialogueNodesToDelete = selectedNodes
+                    .filter(id => id.startsWith('dialogue-'))
+                    .map(id => parseInt(id.replace('dialogue-', '')));
+                
+                if (dialogueNodesToDelete.length > 0) {
+                    const newData = data.filter(event => !dialogueNodesToDelete.includes(event.id));
+                    onUpdateData(newData);
+                }
+                
+                // Remove helper nodes directly
+                setNodes(prev => prev.filter(node => !selectedNodes.includes(node.id)));
+                setSelectedNodes([]);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [selectedNodes, nodes, data, onUpdateData, setNodes]);
+
+    // Handle selection changes
+    const onSelectionChange: OnSelectionChangeFunc = useCallback(({ nodes: selectedNodes }) => {
+        const selectedIds = selectedNodes.map(node => node.id);
+        setSelectedNodes(selectedIds);
+    }, []);
+
+    const FlowContent = () => {
+        const reactFlowInstance = useReactFlow();
+        
+        const getViewportCenter = useCallback(() => {
+            const viewport = reactFlowInstance.getViewport();
+            // Get flow container dimensions from DOM
+            const flowElement = document.querySelector('.react-flow__renderer');
+            const bounds = flowElement?.getBoundingClientRect() || { width: 800, height: 600 };
+            return {
+                x: (-viewport.x + bounds.width / 2) / viewport.zoom,
+                y: (-viewport.y + bounds.height / 2) / viewport.zoom
+            };
+        }, [reactFlowInstance]);
+
+        const handleAddNodeInView = useCallback(() => {
+            const center = getViewportCenter();
+            // Snap to grid
+            const gridSize = 50;
+            const snappedX = Math.round(center.x / gridSize) * gridSize;
+            const snappedY = Math.round(center.y / gridSize) * gridSize;
+            
+            const newDialogue: Partial<DialogueEvent> = { 
+                dialogue_text: 'New dialogue...', 
+                speaker: 'Speaker', 
+                trigger: 'New trigger', 
+                mission: filteredData[0]?.mission || 'Unknown', 
+                zone: filteredData[0]?.zone || 'Unknown', 
+                game_status: 'Not Started', 
+                asset_status: 'Not Started', 
+                wwise_status: 'Not Implemented', 
+                creator: 'User' 
+            };
+            
+            // Store the intended position for this new node
+            (window as any).__nextNodePosition = { x: snappedX, y: snappedY };
+            onAddRow([newDialogue]);
+        }, [getViewportCenter, filteredData, onAddRow]);
+
+        const handleAddHelperNodeInView = useCallback(() => {
+            const center = getViewportCenter();
+            // Snap to grid
+            const gridSize = 50;
+            const snappedX = Math.round(center.x / gridSize) * gridSize;
+            const snappedY = Math.round(center.y / gridSize) * gridSize;
+            
+            const nodeId = `helper-${Date.now()}`;
+            const newHelper = { 
+                id: nodeId, 
+                type: 'helper', 
+                position: { x: snappedX, y: snappedY }, 
+                data: { text: 'Scene description...', nodeId } 
+            };
+            setNodes(prev => [...prev, newHelper]);
+        }, [getViewportCenter, setNodes]);
+
+        // Override the add node functions
+        React.useEffect(() => {
+            // Store references for toolbar buttons
+            (window as any).__addNodeInView = handleAddNodeInView;
+            (window as any).__addHelperNodeInView = handleAddHelperNodeInView;
+        }, [handleAddNodeInView, handleAddHelperNodeInView]);
+
+        return null;
+    };
+
     const handleAddNode = useCallback(() => {
-        const newDialogue: Partial<DialogueEvent> = { dialogue_text: 'New dialogue...', speaker: 'Speaker', trigger: 'New trigger', mission: filteredData[0]?.mission || 'Unknown', zone: filteredData[0]?.zone || 'Unknown', game_status: 'Not Started', asset_status: 'Not Started', wwise_status: 'Not Implemented', creator: 'User' };
-        onAddRow([newDialogue]);
+        if ((window as any).__addNodeInView) {
+            (window as any).__addNodeInView();
+        } else {
+            const newDialogue: Partial<DialogueEvent> = { dialogue_text: 'New dialogue...', speaker: 'Speaker', trigger: 'New trigger', mission: filteredData[0]?.mission || 'Unknown', zone: filteredData[0]?.zone || 'Unknown', game_status: 'Not Started', asset_status: 'Not Started', wwise_status: 'Not Implemented', creator: 'User' };
+            onAddRow([newDialogue]);
+        }
     }, [filteredData, onAddRow]);
 
     const handleAddHelperNode = useCallback(() => {
-        const nodeId = `helper-${Date.now()}`;
-        const newHelper = { id: nodeId, type: 'helper', position: { x: Math.random() * 300 + 100, y: Math.random() * 200 + 100 }, data: { text: 'Scene description...', nodeId } };
-        setNodes(prev => [...prev, newHelper]);
+        if ((window as any).__addHelperNodeInView) {
+            (window as any).__addHelperNodeInView();
+        } else {
+            const nodeId = `helper-${Date.now()}`;
+            const newHelper = { id: nodeId, type: 'helper', position: { x: Math.random() * 300 + 100, y: Math.random() * 200 + 100 }, data: { text: 'Scene description...', nodeId } };
+            setNodes(prev => [...prev, newHelper]);
+        }
     }, [setNodes]);
 
     const handleResetNodeView = useCallback(() => {
@@ -340,6 +632,31 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
             setEdges(newEdges);
         }
     }, [filteredData, zoomLevel, generateLayout, setNodes, setEdges]);
+
+    const handleClearAllNodes = useCallback(() => {
+        if (confirm('Clear all nodes from view? This will remove all dialogue events and helper nodes.')) {
+            if (isBlankSlateMode) {
+                // In blank slate mode, remove only the nodes we created
+                const dialogueNodesToDelete = Array.from(blankSlateNodeIds);
+                if (dialogueNodesToDelete.length > 0) {
+                    const newData = data.filter(event => !dialogueNodesToDelete.includes(event.id));
+                    onUpdateData(newData);
+                }
+                setBlankSlateNodeIds(new Set());
+            } else {
+                // In selection mode, remove all selected dialogues
+                if (selectedRows.length > 0) {
+                    const newData = data.filter(event => !selectedRows.includes(event.id));
+                    onUpdateData(newData);
+                }
+            }
+            // Clear all nodes and edges
+            setNodes([]);
+            setEdges([]);
+            setEdgeLabels({});
+            setSelectedNodes([]);
+        }
+    }, [isBlankSlateMode, blankSlateNodeIds, data, onUpdateData, selectedRows, setNodes, setEdges]);
 
     const handleZoomChange = useCallback((newLevel: ZoomLevel) => setZoomLevel(newLevel), []);
     const handleFilterChange = useCallback((type: 'selection' | 'mission' | 'zone', value: string) => {
@@ -365,7 +682,9 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
                         const [type, value] = e.target.value.split(':');
                         handleFilterChange(type as any, value || '');
                     }}>
-                        <option value="selection:">Selected Rows ({selectedRows.length})</option>
+                        <option value="selection:">
+                            {selectedRows.length === 0 ? 'All Dialogues (Blank Slate)' : `Selected Rows (${selectedRows.length})`}
+                        </option>
                         <optgroup label="Missions">
                             {missions.map(m => <option key={m} value={`mission:${m}`}>Mission: {m}</option>)}
                         </optgroup>
@@ -377,7 +696,8 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
                 <div className="toolbar-right">
                     <button onClick={handleAddNode} className="btn-primary">💬 Add Dialogue</button>
                     <button onClick={handleAddHelperNode} className="btn-secondary">📝 Add Note</button>
-                    <button onClick={handleResetNodeView} className="btn-danger">🔄 Reset View</button>
+                    <button onClick={handleClearAllNodes} className="btn-danger">🗑️ Clear All</button>
+                    <button onClick={handleResetNodeView} className="btn-secondary">🔄 Reset View</button>
                 </div>
             </div>
 
@@ -388,14 +708,22 @@ const NodeDesigner: React.FC<NodeDesignerProps> = ({
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
-                    nodeTypes={nodeTypes} // *** CORRECTED: Use `nodeTypes` ***
+                    onSelectionChange={onSelectionChange}
+                    nodeTypes={nodeTypes}
                     edgeTypes={{ custom: CustomEdge }}
                     connectionMode={ConnectionMode.Loose}
                     fitView
                     fitViewOptions={{ padding: 0.2 }}
+                    snapToGrid={true}
+                    snapGrid={[50, 50]}
+                    selectionMode={SelectionMode.Partial}
+                    multiSelectionKeyCode={['Control', 'Meta']}
+                    panOnDrag={[1, 2]}
+                    selectionKeyCode={null}
                 >
+                    <FlowContent />
                     <Controls />
-                    <Background color="#333" gap={16} />
+                    <Background color="#333" gap={50} size={2} />
                 </ReactFlow>
             </div>
         </div>

@@ -333,6 +333,11 @@
     margin-bottom: 8px;
 }
 
+.node-controls {
+    display: flex;
+    gap: 4px;
+}
+
 .speaker {
     font-size: 12px;
     font-weight: 600;
@@ -354,6 +359,21 @@
     background: rgba(96, 165, 250, 0.3);
 }
 
+.delete-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
 .dialogue-text {
     font-size: 13px;
     line-height: 1.4;
@@ -365,12 +385,78 @@
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
 .trigger {
     font-size: 11px;
     color: var(--color-text-secondary);
     font-style: italic;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.speaker:hover,
+.dialogue-text:hover,
+.trigger:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Editing styles */
+.edit-field {
+    margin: 2px 0;
+}
+
+.speaker-input,
+.speaker-select,
+.trigger-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #60a5fa;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.speaker-select {
+    cursor: pointer;
+}
+
+.dialogue-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #60a5fa;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 13px;
+    color: #1f2937;
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+    line-height: 1.4;
+}
+
+.speaker-input:focus,
+.speaker-select:focus,
+.trigger-input:focus,
+.dialogue-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.speaker {
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
 /* Details Popup */

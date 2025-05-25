@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import DataTable from './components/DataTable';
 import NodeDesigner from './components/NodeDesigner';
+import LandingPage from './components/LandingPage';
 import { DialogueEvent } from './types';
 import { mockDialogueEvents, dropdownOptions } from './mockData';
 import './App.css';
@@ -11,8 +12,10 @@ const App: React.FC = () => {
         const maxId = Math.max(...mockDialogueEvents.map(event => event.id));
         return maxId + 1;
     });
-    const [showNodeDesigner, setShowNodeDesigner] = useState(false);
+    const [currentView, setCurrentView] = useState<'landing' | 'table' | 'nodes'>('landing');
     const [selectedRowsForNodes, setSelectedRowsForNodes] = useState<number[]>([]);
+    const [hasActiveNodeSession, setHasActiveNodeSession] = useState(false);
+    const [isBlankSlateMode, setIsBlankSlateMode] = useState(false);
 
     const handleUpdateRow = (id: number, field: string, value: string) => {
         setDialogueEvents(prev =>
@@ -78,11 +81,13 @@ const App: React.FC = () => {
 
         setDialogueEvents(prev => [...prev, ...newEvents]);
 
-        // If NodeDesigner is open and in selection mode, add new IDs to selection
-        if (showNodeDesigner && selectedRowsForNodes.length > 0) {
+        // If NodeDesigner is open, handle new node addition
+        if (currentView === 'nodes') {
             const newIds = newEvents.map(e => e.id);
-            setSelectedRowsForNodes(prev => [...prev, ...newIds]);
-            console.log("Added new IDs to selection:", newIds);
+            if (isBlankSlateMode || selectedRowsForNodes.length > 0) {
+                setSelectedRowsForNodes(prev => [...prev, ...newIds]);
+                console.log("Added new IDs to selection:", newIds);
+            }
         }
 
         setNextId(prev => prev + rows.length);
@@ -114,39 +119,89 @@ const App: React.FC = () => {
 
     const handleOpenNodeDesigner = (selectedRows: number[]) => {
         setSelectedRowsForNodes(selectedRows);
-        setShowNodeDesigner(true);
+        setCurrentView('nodes');
+        setHasActiveNodeSession(true);
+        setIsBlankSlateMode(false);
     };
 
     const handleCloseNodeDesigner = () => {
-        setShowNodeDesigner(false);
-        setSelectedRowsForNodes([]);
+        setCurrentView('table');
+        // Keep selectedRowsForNodes and hasActiveNodeSession to preserve state
     };
+
+    const handleGetStarted = () => {
+        // Start with true blank slate - no existing nodes shown
+        setSelectedRowsForNodes([]);
+        setCurrentView('nodes');
+        setHasActiveNodeSession(true);
+        setIsBlankSlateMode(true);
+    };
+
+    const handleGoToTable = () => {
+        setCurrentView('table');
+    };
+
+    const handleBackToLanding = () => {
+        setCurrentView('landing');
+        setSelectedRowsForNodes([]);
+        setHasActiveNodeSession(false);
+        setIsBlankSlateMode(false);
+    };
+
+    const handleGoToNodes = () => {
+        setCurrentView('nodes');
+    };
+
+    const totalMissions = new Set(dialogueEvents.map(e => e.mission)).size;
+    const totalSpeakers = new Set(dialogueEvents.map(e => e.speaker)).size;
 
     return (
         <div className="App">
-            {showNodeDesigner ? (
+            {currentView === 'landing' && (
+                <LandingPage
+                    onGetStarted={handleGetStarted}
+                    onGoToTable={handleGoToTable}
+                    totalDialogues={dialogueEvents.length}
+                    totalMissions={totalMissions}
+                    totalSpeakers={totalSpeakers}
+                />
+            )}
+
+            {currentView === 'nodes' && (
                 <NodeDesigner
                     data={dialogueEvents}
                     selectedRows={selectedRowsForNodes}
                     onClose={handleCloseNodeDesigner}
                     onUpdateData={handleSetData}
                     onAddRow={handleAddRows}
+                    onUpdateRow={handleUpdateRow}
+                    dropdownOptions={dropdownOptions}
+                    isBlankSlateMode={isBlankSlateMode}
                 />
-            ) : (
+            )}
+
+            {currentView === 'table' && (
                 <>
                     <header className="app-header">
                         <div className="header-content">
                             <h1>Narrative Database Tool</h1>
-                            <div className="header-stats">
-                <span className="stat">
-                  <strong>{dialogueEvents.length}</strong> Events
-                </span>
-                                <span className="stat">
-                  <strong>{new Set(dialogueEvents.map(e => e.mission)).size}</strong> Missions
-                </span>
-                                <span className="stat">
-                  <strong>{new Set(dialogueEvents.map(e => e.speaker)).size}</strong> Speakers
-                </span>
+                            <div className="header-actions">
+                                {hasActiveNodeSession && (
+                                    <button className="btn-node-return" onClick={handleGoToNodes}>
+                                        🌐 Return to Node Designer
+                                    </button>
+                                )}
+                                <div className="header-stats">
+                                    <span className="stat">
+                                        <strong>{dialogueEvents.length}</strong> Events
+                                    </span>
+                                    <span className="stat">
+                                        <strong>{totalMissions}</strong> Missions
+                                    </span>
+                                    <span className="stat">
+                                        <strong>{totalSpeakers}</strong> Speakers
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </header>
